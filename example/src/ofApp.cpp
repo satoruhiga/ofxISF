@@ -15,9 +15,9 @@ public:
 		ofSetVerticalSync(true);
 		ofBackground(0);
 		
-		video.initGrabber(1280, 720, GL_RGB32F);
+		video.initGrabber(1280, 720);
 		
-		isf.setup(1280, 720);
+		isf.setup(1280, 720, GL_RGB32F);
 		isf.load("isf-test.fs");
 		
 		isf.setImage("inputImage", video.getTextureReference());
