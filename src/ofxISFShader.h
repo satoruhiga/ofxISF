@@ -194,6 +194,7 @@ protected:
 			if (!fbo.isAllocated())
 			{
 				fbo.allocate(buf.width, buf.height, internalformat);
+				fbo.getTextureReference().getTextureData().bFlipTexture = true;
 				
 				fbo.begin();
 				ofClear(0);
@@ -243,16 +244,16 @@ protected:
 			params.getParam(i)->updateUniform(&shader);
 		
 		glBegin(GL_QUADS);
-		glTexCoord2f(0, 1);
+		glTexCoord2f(0, 0);
 		glVertex2f(0, 0);
 		
-		glTexCoord2f(1, 1);
+		glTexCoord2f(1, 0);
 		glVertex2f(render_size.x, 0);
 		
-		glTexCoord2f(1, 0);
+		glTexCoord2f(1, 1);
 		glVertex2f(render_size.x, render_size.y);
 		
-		glTexCoord2f(0, 0);
+		glTexCoord2f(0, 1);
 		glVertex2f(0, render_size.y);
 		glEnd();
 		
