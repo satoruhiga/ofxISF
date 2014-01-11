@@ -23,7 +23,6 @@ public:
 		
 		ofFbo &fbo = framebuffers["DEFAULT"];
 		fbo.allocate(render_size.x, render_size.y, internalformat);
-		fbo.getTextureReference().getTextureData().bFlipTexture = true;
 		
 		fbo.begin();
 		ofClear(0);
@@ -194,7 +193,6 @@ protected:
 			if (!fbo.isAllocated())
 			{
 				fbo.allocate(buf.width, buf.height, internalformat);
-				fbo.getTextureReference().getTextureData().bFlipTexture = true;
 				
 				fbo.begin();
 				ofClear(0);

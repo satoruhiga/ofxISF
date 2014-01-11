@@ -157,7 +157,6 @@ protected:
 				vec4 IMG_NORM_PIXEL_2D(sampler2D sampler, vec2 pct, vec2 normLoc)
 				{
 					vec2 coord = normLoc;
-					coord.y = 1. - coord.y;
 					return texture2D(sampler, coord * pct);
 				}
 				vec4 IMG_PIXEL_2D(sampler2D sampler, vec2 pct, vec2 loc)
@@ -167,7 +166,6 @@ protected:
 				vec4 IMG_THIS_NORM_PIXEL_2D(sampler2D sampler, vec2 pct)
 				{
 					vec2 coord = vv_FragNormCoord;
-					coord.y = 1. - coord.y;
 					return texture2D(sampler, coord * pct);
 				}
 				vec4 IMG_THIS_PIXEL_2D(sampler2D sampler, vec2 pct)
@@ -177,7 +175,6 @@ protected:
 				vec4 IMG_NORM_PIXEL_RECT(sampler2DRect sampler, vec2 pct, vec2 normLoc)
 				{
 					vec2 coord = normLoc;
-					coord.y = 1. - coord.y;
 					return texture2DRect(sampler, coord * RENDERSIZE);
 				}
 				vec4 IMG_PIXEL_RECT(sampler2DRect sampler, vec2 pct, vec2 loc)
@@ -187,7 +184,6 @@ protected:
 				vec4 IMG_THIS_NORM_PIXEL_RECT(sampler2DRect sampler, vec2 pct)
 				{
 					vec2 coord = vv_FragNormCoord;
-					coord.y = 1. - coord.y;
 					return texture2DRect(sampler, coord * RENDERSIZE);
 				}
 				vec4 IMG_THIS_PIXEL_RECT(sampler2DRect sampler, vec2 pct)
