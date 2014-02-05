@@ -236,7 +236,7 @@ protected:
 		shader.begin();
 		shader.setUniform1i("PASSINDEX", index);
 		shader.setUniform2fv("RENDERSIZE", render_size.getPtr());
-		shader.setUniform1i("TIME", ofGetElapsedTimef());
+		shader.setUniform1f("TIME", ofGetElapsedTimef());
 		
 		for (int i = 0; i < params.size(); i++)
 			params.getParam(i)->updateUniform(&shader);
