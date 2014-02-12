@@ -88,6 +88,31 @@ public:
 		current_framebuffer->draw(x, y);
 	}
 	
+	//
+	
+	void clear(const ofColor& color)
+	{
+		current_framebuffer->begin();
+		ofClear(color);
+		current_framebuffer->end();
+	}
+	
+	void clear(float r, float g, float b, float a = 255)
+	{
+		current_framebuffer->begin();
+		ofClear(r, g, b, a);
+		current_framebuffer->end();
+	}
+
+	void clear(float b, float a = 255)
+	{
+		current_framebuffer->begin();
+		ofClear(b, a);
+		current_framebuffer->end();
+	}
+
+	//
+	
 	ofTexture& getTextureRecerence()
 	{
 		return current_framebuffer->getTextureReference();
