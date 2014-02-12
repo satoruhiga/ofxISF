@@ -257,6 +257,7 @@ protected:
 		if (!shader.isLoaded()) return;
 		
 		current_framebuffer->begin();
+		if (index == 0) ofClear(0);
 		
 		shader.begin();
 		shader.setUniform1i("PASSINDEX", index);
