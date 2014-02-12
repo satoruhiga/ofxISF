@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ofxISFConstants.h"
-#include "ofxISFParams.h"
-#include "ofxISFCodeGenerater.h"
-#include "ofxISFShader.h"
+#include "ofxISF/Constants.h"
+#include "ofxISF/Params.h"
+#include "ofxISF/CodeGenerater.h"
+#include "ofxISF/Shader.h"

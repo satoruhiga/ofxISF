@@ -2,8 +2,8 @@
 
 #include "Poco/RegularExpression.h"
 
-#include "ofxISFConstants.h"
-#include "ofxISFParams.h"
+#include "Constants.h"
+#include "Params.h"
 
 OFX_ISF_BEGIN_NAMESPACE
 

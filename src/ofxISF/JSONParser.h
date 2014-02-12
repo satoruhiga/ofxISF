@@ -1,7 +1,7 @@
 #pragma once
 
-#include "ofxISFConstants.h"
-#include "ofxISFParams.h"
+#include "Constants.h"
+#include "Params.h"
 
 #include "jsonxx.h"
 

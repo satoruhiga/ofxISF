@@ -1,8 +1,8 @@
 #pragma once
 
-#include "ofxISFConstants.h"
-#include "ofxISFParams.h"
-#include "ofxISFJSONParser.h"
+#include "Constants.h"
+#include "Params.h"
+#include "JSONParser.h"
 
 OFX_ISF_BEGIN_NAMESPACE
 
@@ -59,6 +59,9 @@ public:
 		if (need_reload_shader) reload_shader();
 		
 		current_framebuffer = &framebuffers["DEFAULT"];
+		current_framebuffer->begin();
+		ofClear(0);
+		current_framebuffer->end();
 		
 		if (passes.empty())
 		{
@@ -257,7 +260,6 @@ protected:
 		if (!shader.isLoaded()) return;
 		
 		current_framebuffer->begin();
-		if (index == 0) ofClear(0);
 		
 		shader.begin();
 		shader.setUniform1i("PASSINDEX", index);

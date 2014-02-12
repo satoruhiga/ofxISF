@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ofxISFConstants.h"
+#include "Constants.h"
 
 OFX_ISF_BEGIN_NAMESPACE
 

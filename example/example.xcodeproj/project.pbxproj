@@ -83,11 +83,11 @@
 		E75A2865187DF217006E7860 /* jsonxx.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jsonxx.h; sourceTree = "<group>"; };
 		E75A2866187DF217006E7860 /* LICENSE.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE.txt; sourceTree = "<group>"; };
 		E75A2868187DF217006E7860 /* ofxISF.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxISF.h; sourceTree = "<group>"; };
-		E75A2869187DF217006E7860 /* ofxISFCodeGenerater.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxISFCodeGenerater.h; sourceTree = "<group>"; };
-		E75A286A187DF217006E7860 /* ofxISFConstants.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxISFConstants.h; sourceTree = "<group>"; };
-		E75A286B187DF217006E7860 /* ofxISFJSONParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxISFJSONParser.h; sourceTree = "<group>"; };
-		E75A286C187DF217006E7860 /* ofxISFParams.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxISFParams.h; sourceTree = "<group>"; };
-		E75A286D187DF217006E7860 /* ofxISFShader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxISFShader.h; sourceTree = "<group>"; };
+		E78825EB18AC1A5F004094F4 /* CodeGenerater.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CodeGenerater.h; sourceTree = "<group>"; };
+		E78825EC18AC1A5F004094F4 /* Constants.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Constants.h; sourceTree = "<group>"; };
+		E78825ED18AC1A5F004094F4 /* JSONParser.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JSONParser.h; sourceTree = "<group>"; };
+		E78825EE18AC1A5F004094F4 /* Params.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Params.h; sourceTree = "<group>"; };
+		E78825EF18AC1A5F004094F4 /* Shader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Shader.h; sourceTree = "<group>"; };
 		E7E077E415D3B63C0020DFD4 /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = /System/Library/Frameworks/CoreVideo.framework; sourceTree = "<absolute>"; };
 		E7E077E715D3B6510020DFD4 /* QTKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QTKit.framework; path = /System/Library/Frameworks/QTKit.framework; sourceTree = "<absolute>"; };
 		E7F985F515E0DE99003869B5 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = /System/Library/Frameworks/Accelerate.framework; sourceTree = "<absolute>"; };
@@ -238,14 +238,22 @@
 			isa = PBXGroup;
 			children = (
 				E75A2868187DF217006E7860 /* ofxISF.h */,
-				E75A2869187DF217006E7860 /* ofxISFCodeGenerater.h */,
-				E75A286A187DF217006E7860 /* ofxISFConstants.h */,
-				E75A286B187DF217006E7860 /* ofxISFJSONParser.h */,
-				E75A286C187DF217006E7860 /* ofxISFParams.h */,
-				E75A286D187DF217006E7860 /* ofxISFShader.h */,
+				E78825E518AC1A39004094F4 /* ofxISF */,
 			);
 			name = src;
 			path = ../src;
+			sourceTree = "<group>";
+		};
+		E78825E518AC1A39004094F4 /* ofxISF */ = {
+			isa = PBXGroup;
+			children = (
+				E78825EB18AC1A5F004094F4 /* CodeGenerater.h */,
+				E78825EC18AC1A5F004094F4 /* Constants.h */,
+				E78825ED18AC1A5F004094F4 /* JSONParser.h */,
+				E78825EE18AC1A5F004094F4 /* Params.h */,
+				E78825EF18AC1A5F004094F4 /* Shader.h */,
+			);
+			path = ofxISF;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
