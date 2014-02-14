@@ -47,6 +47,34 @@ class Uniforms
 {
 public:
 
+	size_t size() const
+	{
+		return uniforms.size();
+	}
+	
+	Uniform::Ref getUniform(size_t idx) const
+	{
+		return uniforms.at(idx);
+	}
+	
+	Uniform::Ref getUniform(const string& key) const
+	{
+		if (uniforms_map.find(key) == uniforms_map.end()) return Uniform::Ref();
+		return uniforms_map[key];
+	}
+	
+	bool hasUniform(const string& key) const
+	{
+		return uniforms_map.find(key) != uniforms_map.end();
+	}
+
+	const vector<Ref_<ImageUniform> >& getImageUniforms() const
+	{
+		return image_uniforms;
+	}
+
+public:
+	
 	bool addUniform(const string& key, Uniform::Ref uniform)
 	{
 		if (hasUniform(key)) return false;
@@ -63,24 +91,16 @@ public:
 		uniforms_map.erase(key);
 		updateCache();
 	}
-
-	size_t size() const { return uniforms.size(); }
-
-	Uniform::Ref getUniform(size_t idx) const { return uniforms.at(idx); }
-	Uniform::Ref getUniform(const string& key) const
-	{
-		if (uniforms_map.find(key) == uniforms_map.end()) return Uniform::Ref();
-		return uniforms_map[key];
-	}
-	
-	bool hasUniform(const string& key) const { return uniforms_map.find(key) != uniforms_map.end(); }
 	
 	template <typename T0, typename T1>
 	void setUniform(const string& name, const T1& value);
 
-public:
-
-	const vector<Ref_<ImageUniform> >& getImageUniforms() const { return image_uniforms; }
+	void clear()
+	{
+		uniforms.clear();
+		uniforms_map.clear();
+		image_uniforms.clear();
+	}
 
 protected:
 

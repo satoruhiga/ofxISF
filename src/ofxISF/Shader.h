@@ -133,20 +133,28 @@ public:
 	
 	void setImage(ofTexture *img)
 	{
-		if (default_image_input_name == "") return;
+		if (default_image_input_name == "")
+		{
+			static bool shown = false;
+			if (!shown)
+			{
+				shown = true;
+				ofLogError("Shader") << "no default image input";
+			}
+			
+			return;
+		}
 		uniforms.setUniform<ofTexture*>(default_image_input_name, img);
 	}
 	
 	void setImage(ofTexture &img)
 	{
-		if (default_image_input_name == "") return;
-		setImage(default_image_input_name, &img);
+		setImage(&img);
 	}
 	
 	void setImage(ofImage &img)
 	{
-		if (default_image_input_name == "") return;
-		setImage(default_image_input_name, &img.getTextureReference());
+		setImage(&img.getTextureReference());
 	}
 
 	//
@@ -198,6 +206,8 @@ public:
 	const string& getDescription() const { return description; }
 	const string& getCredit() const { return credit; }
 	const vector<string>& getCategories() const { return categories; }
+
+	const Uniforms& getInputs() const { return input_uniforms; }
 	
 	//
 	
@@ -222,6 +232,7 @@ protected:
 	//
 	
 	Uniforms uniforms;
+	Uniforms input_uniforms;
 	CodeGenerator code_generator;
 
 	string header_directive;
@@ -242,6 +253,10 @@ protected:
 		if (!shader.isLoaded()) return;
 		
 		current_framebuffer->begin();
+		
+		ofPushStyle();
+		ofEnableAlphaBlending();
+		ofSetColor(255);
 		
 		shader.begin();
 		shader.setUniform1i("PASSINDEX", index);
@@ -268,6 +283,8 @@ protected:
 		glEnd();
 		
 		shader.end();
+		
+		ofPopStyle();
 		
 		current_framebuffer->end();
 	}
@@ -387,6 +404,7 @@ protected:
 		
 		{
 			default_image_input_name = "";
+			input_uniforms.clear();
 			
 			a = o.get<jsonxx::Array>("INPUTS", jsonxx::Array());
 			for (int i = 0; i < a.size(); i++)
@@ -417,6 +435,7 @@ protected:
 					}
 					
 					uniforms.addUniform(name, uniform);
+					input_uniforms.addUniform(name, uniform);
 				}
 			}
 		}
