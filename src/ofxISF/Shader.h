@@ -1,8 +1,9 @@
 #pragma once
 
 #include "Constants.h"
-#include "Params.h"
-#include "JSONParser.h"
+#include "Uniforms.h"
+
+#include "jsonxx.h"
 
 OFX_ISF_BEGIN_NAMESPACE
 
@@ -11,9 +12,10 @@ class Shader
 public:
 
 	Shader()
-	:
-		json_parser(render_size, params, presistent_buffers, passes),
-		code_gen(params)
+		:code_generator(uniforms)
+		,current_framebuffer(NULL)
+		,result_texture(NULL)
+		,internalformat(GL_RGB)
 	{}
 
 	void setup(int w, int h, int internalformat = GL_RGB)
@@ -21,7 +23,7 @@ public:
 		render_size.set(w, h);
 		this->internalformat = internalformat;
 		
-		ofFbo &fbo = framebuffers["DEFAULT"];
+		ofFbo &fbo = framebuffer_map["DEFAULT"];
 		fbo.allocate(render_size.x, render_size.y, internalformat);
 		
 		fbo.begin();
@@ -36,7 +38,9 @@ public:
 			ofLogError("ofxISF") << "no such file";
 			return false;
 		}
-
+		
+		name = ofFilePath::getBaseName(path);
+		
 		string data = ofBufferFromFile(path).getText();
 		if (!parse_directive(data, header_directive, shader_directive)) return false;
 		if (!reload_shader()) return false;
@@ -46,7 +50,7 @@ public:
 
 	void update()
 	{
-		const vector<Ref_<ImageParam> >& images = params.getImageParams();
+		const vector<Ref_<ImageUniform> >& images = uniforms.getImageUniforms();
 		bool need_reload_shader = false;
 		for (int i = 0; i < images.size(); i++)
 		{
@@ -58,7 +62,7 @@ public:
 		}
 		if (need_reload_shader) reload_shader();
 		
-		current_framebuffer = &framebuffers["DEFAULT"];
+		current_framebuffer = &framebuffer_map["DEFAULT"];
 		current_framebuffer->begin();
 		ofClear(0);
 		current_framebuffer->end();
@@ -74,7 +78,11 @@ public:
 				Pass &pass = passes[i];
 				if (!pass.target.empty())
 				{
-					current_framebuffer = &framebuffers[pass.target];
+					current_framebuffer = &framebuffer_map[pass.target];
+				}
+				else
+				{
+					current_framebuffer = &framebuffer_map["DEFAULT"];
 				}
 				render_pass(i);
 			}
@@ -118,20 +126,40 @@ public:
 	
 	ofTexture& getTextureRecerence()
 	{
-		return current_framebuffer->getTextureReference();
+		return *result_texture;
 	}
 	
 	//
 	
-	template <typename INT_TYPE, typename EXT_TYPE>
-	void setParam(const string& name, const EXT_TYPE& value)
+	void setImage(ofTexture *img)
 	{
-		params.setParam<INT_TYPE>(name, value);
+		if (default_image_input_name == "") return;
+		uniforms.setUniform<ofTexture*>(default_image_input_name, img);
+	}
+	
+	void setImage(ofTexture &img)
+	{
+		if (default_image_input_name == "") return;
+		setImage(default_image_input_name, &img);
+	}
+	
+	void setImage(ofImage &img)
+	{
+		if (default_image_input_name == "") return;
+		setImage(default_image_input_name, &img.getTextureReference());
+	}
+
+	//
+	
+	template <typename INT_TYPE, typename EXT_TYPE>
+	void setUniform(const string& name, const EXT_TYPE& value)
+	{
+		uniforms.setUniform<INT_TYPE>(name, value);
 	}
 	
 	void setImage(const string& name, ofTexture *img)
 	{
-		params.setParam<ofTexture*>(name, img);
+		uniforms.setUniform<ofTexture*>(name, img);
 	}
 
 	void setImage(const string& name, ofTexture &img)
@@ -144,43 +172,107 @@ public:
 		setImage(name, &img.getTextureReference());
 	}
 	
+	//
+	
+	template <typename T>
+	bool hasUniform(const string& name) const
+	{
+		if (!uniforms.hasUniform(name)) return false;
+		if (!uniforms.getUniform(name)->isTypeOf<T>()) return false;
+		return true;
+	}
+	
+	bool hasImage(const string& name) const
+	{
+		return hasUniform<ofTexture*>(name);
+	}
+	
 	void dumpShader() const
 	{
-		code_gen.dumpShader();
+		code_generator.dumpShader();
 	}
 
 	//
 	
-	const string& getDescription() const { return json_parser.getDescription(); }
-	const string& getCredit() const { return json_parser.getCredit(); }
-	const vector<string>& getCategories() const { return json_parser.getCategories(); }
+	const string& getName() const { return name; }
+	const string& getDescription() const { return description; }
+	const string& getCredit() const { return credit; }
+	const vector<string>& getCategories() const { return categories; }
+	
+	//
+	
+	const vector<ofTexture*>& getTextures() const { return textures; }
 	
 protected:
 
 	ofVec2f render_size;
-
+	int internalformat;
+	
+	string name;
 	string description;
 	string credit;
 	vector<string> categories;
 
-	Params params;
-	JSONParser json_parser;
-	CodeGenerator code_gen;
+	vector<Input> inputs;
+	vector<PresistentBuffer> presistent_buffers;
+	vector<Pass> passes;
+	
+	string default_image_input_name;
+	
+	//
+	
+	Uniforms uniforms;
+	CodeGenerator code_generator;
 
 	string header_directive;
 	string shader_directive;
 
-	map<string, ofFbo> framebuffers;
+	map<string, ofFbo> framebuffer_map;
 	ofFbo *current_framebuffer;
 	
-	vector<PresistentBuffer> presistent_buffers;
-	vector<Pass> passes;
+	vector<ofTexture*> textures;
+	ofTexture *result_texture;
 	
 	ofShader shader;
-	
-	int internalformat;
 
 protected:
+	
+	void render_pass(int index)
+	{
+		if (!shader.isLoaded()) return;
+		
+		current_framebuffer->begin();
+		
+		shader.begin();
+		shader.setUniform1i("PASSINDEX", index);
+		shader.setUniform2fv("RENDERSIZE", render_size.getPtr());
+		shader.setUniform1f("TIME", ofGetElapsedTimef());
+		
+		ImageUniform::resetTextureUnitID();
+		
+		for (int i = 0; i < uniforms.size(); i++)
+			uniforms.getUniform(i)->update(&shader);
+		
+		glBegin(GL_QUADS);
+		glTexCoord2f(0, 0);
+		glVertex2f(0, 0);
+		
+		glTexCoord2f(1, 0);
+		glVertex2f(render_size.x, 0);
+		
+		glTexCoord2f(1, 1);
+		glVertex2f(render_size.x, render_size.y);
+		
+		glTexCoord2f(0, 1);
+		glVertex2f(0, render_size.y);
+		glEnd();
+		
+		shader.end();
+		
+		current_framebuffer->end();
+	}
+
+#pragma mark -
 	
 	bool parse_directive(const string &data, string& header_directive, string& shader_directive)
 	{
@@ -209,14 +301,18 @@ protected:
 	
 	bool reload_shader()
 	{
-		current_framebuffer = &framebuffers["DEFAULT"];
+		textures.clear();
+		current_framebuffer = &framebuffer_map["DEFAULT"];
 		
-		if (!json_parser.parse(header_directive)) return false;
+		textures.push_back(&framebuffer_map["DEFAULT"].getTextureReference());
+		
+		if (!parse(header_directive)) return false;
 		
 		for (int i = 0; i < presistent_buffers.size(); i++)
 		{
 			const PresistentBuffer &buf = presistent_buffers[i];
-			ofFbo &fbo = framebuffers[buf.name];
+			ofFbo &fbo = framebuffer_map[buf.name];
+			textures.push_back(&fbo.getTextureReference());
 			
 			if (!fbo.isAllocated())
 			{
@@ -227,23 +323,37 @@ protected:
 				fbo.end();
 			}
 			
-			ImageParam *param = new ImageParam(buf.name);
-			param->set(&fbo.getTextureReference());
-			params.addParam(Param::Ref(param));
+			ImageUniform *uniform = new ImageUniform(buf.name);
+			uniform->set(&fbo.getTextureReference());
+			uniforms.addUniform(buf.name, Uniform::Ref(uniform));
 		}
 		
-		if (!code_gen.generate(shader_directive)) return false;
+		{
+			string result_texture_name = "";
+			
+			if (!passes.empty())
+			{
+				result_texture_name = passes.back().target;
+			}
+			
+			if (result_texture_name == "")
+				result_texture_name = "DEFAULT";
+			
+			result_texture = &framebuffer_map[result_texture_name].getTextureReference();
+		}
+		
+		if (!code_generator.generate(shader_directive)) return false;
 		
 		shader.unload();
-		if (!shader.setupShaderFromSource(GL_VERTEX_SHADER, code_gen.getVertexShader()))
+		if (!shader.setupShaderFromSource(GL_VERTEX_SHADER, code_generator.getVertexShader()))
 		{
-			cout << code_gen.getVertexShader() << endl;
+			cout << code_generator.getVertexShader() << endl;
 			return false;
 		}
 		
-		if (!shader.setupShaderFromSource(GL_FRAGMENT_SHADER, code_gen.getFragmentShader()))
+		if (!shader.setupShaderFromSource(GL_FRAGMENT_SHADER, code_generator.getFragmentShader()))
 		{
-			cout << code_gen.getFragmentShader() << endl;
+			cout << code_generator.getFragmentShader() << endl;
 			return false;
 		}
 		
@@ -255,37 +365,192 @@ protected:
 		return true;
 	}
 	
-	void render_pass(int index)
+	//
+	
+	bool parse(const string& header_directive)
 	{
-		if (!shader.isLoaded()) return;
+		jsonxx::Object o;
+		assert(o.parse(header_directive));
 		
-		current_framebuffer->begin();
+		description = o.get<string>("DESCRIPTION", "");
+		credit = o.get<string>("CREDIT", "");
 		
-		shader.begin();
-		shader.setUniform1i("PASSINDEX", index);
-		shader.setUniform2fv("RENDERSIZE", render_size.getPtr());
-		shader.setUniform1f("TIME", ofGetElapsedTimef());
+		jsonxx::Array a;
 		
-		for (int i = 0; i < params.size(); i++)
-			params.getParam(i)->updateUniform(&shader);
+		{
+			categories.clear();
+			a = o.get<jsonxx::Array>("CATEGORIES", jsonxx::Array());
+			for (int i = 0; i < a.size(); i++)
+				if (a.has<string>(i))
+					categories.push_back(a.get<string>(i));
+		}
 		
-		glBegin(GL_QUADS);
-		glTexCoord2f(0, 0);
-		glVertex2f(0, 0);
+		{
+			default_image_input_name = "";
+			
+			a = o.get<jsonxx::Array>("INPUTS", jsonxx::Array());
+			for (int i = 0; i < a.size(); i++)
+			{
+				jsonxx::Object o = a.get<jsonxx::Object>(i, jsonxx::Object());
+				string name = o.get<string>("NAME", "");
+				string type = o.get<string>("TYPE", "");
+				
+				Input input;
+				input.name = name;
+				input.type = type;
+				inputs.push_back(input);
+				
+				if (type == "image"
+					&& default_image_input_name == "")
+				{
+					default_image_input_name = name;
+				}
+				
+				Uniform::Ref uniform = setup_input_uniform(o);
+				if (uniform)
+				{
+					// uniform type changed
+					if (uniforms.hasUniform(name)
+						&& uniforms.getUniform(name)->getTypeID() != uniform->getTypeID())
+					{
+						uniforms.removeUniform(name);
+					}
+					
+					uniforms.addUniform(name, uniform);
+				}
+			}
+		}
 		
-		glTexCoord2f(1, 0);
-		glVertex2f(render_size.x, 0);
+		{
+			presistent_buffers.clear();
+			
+			if (o.has<jsonxx::Array>("PERSISTENT_BUFFERS"))
+			{
+				a = o.get<jsonxx::Array>("PERSISTENT_BUFFERS", jsonxx::Array());
+				for (int i = 0; i < a.size(); i++)
+				{
+					string name = a.get<string>(i);
+					
+					PresistentBuffer buf;
+					buf.name = name;
+					buf.width = render_size.x;
+					buf.height = render_size.y;
+					presistent_buffers.push_back(buf);
+				}
+			}
+			else if (o.has<jsonxx::Object>("PERSISTENT_BUFFERS"))
+			{
+#if 0
+				jsonxx::Object obj = o.get<jsonxx::Object>("PERSISTENT_BUFFERS", jsonxx::Object());
+				const jsonxx::Object::container& kv_map = obj.kv_map();
+				
+				jsonxx::Object::container::const_iterator it = kv_map.begin();
+				while (it != kv_map.end())
+				{
+					string name = it->first;
+					PresistentBuffer buf;
+					buf.name = name;
+					
+					// TODO: uniform expression
+					buf.width = ...;
+					buf.height = ...;
+					
+					presistent_buffers.push_back(buf);
+					
+					it++;
+				}
+#endif
+				
+				throw "not implemented yet";
+			}
+		}
 		
-		glTexCoord2f(1, 1);
-		glVertex2f(render_size.x, render_size.y);
+		{
+			passes.clear();
+			
+			a = o.get<jsonxx::Array>("PASSES", jsonxx::Array());
+			for (int i = 0; i < a.size(); i++)
+			{
+				jsonxx::Object pass = a.get<jsonxx::Object>(i);
+				
+				string target = pass.get<string>("TARGET", "");
+				
+				// TODO: uniform expression
+				string width = pass.get<string>("WIDTH", "");
+				string height = pass.get<string>("HEIGHT", "");
+				
+				Pass o;
+				o.target = target;
+				
+				passes.push_back(o);
+			}
+		}
 		
-		glTexCoord2f(0, 1);
-		glVertex2f(0, render_size.y);
-		glEnd();
+		return true;
+	}
+	
+	Uniform::Ref setup_input_uniform(const jsonxx::Object& obj)
+	{
+		string name = obj.get<string>("NAME", "");
+		string type = obj.get<string>("TYPE", "");
 		
-		shader.end();
+		Uniform::Ref uniform = NULL;
 		
-		current_framebuffer->end();
+		if (type == "image")
+		{
+			uniform = new ImageUniform(name);
+		}
+		else if (type == "bool")
+		{
+			uniform = new BoolUniform(name, obj.get<bool>("DEFAULT", false));
+		}
+		else if (type == "float")
+		{
+			FloatUniform *o = new FloatUniform(name, obj.get<jsonxx::Number>("DEFAULT", 0));
+			
+			if (obj.has<jsonxx::Number>("MIN") && obj.has<jsonxx::Number>("MAX"))
+			{
+				float m0 = obj.get<jsonxx::Number>("MIN", std::numeric_limits<float>::min());
+				float m1 = obj.get<jsonxx::Number>("MAX", std::numeric_limits<float>::max());
+				o->setRange(m0, m1);
+			}
+			
+			uniform = o;
+		}
+		else if (type == "color")
+		{
+			ofFloatColor def;
+			
+			jsonxx::Array a = obj.get<jsonxx::Array>("DEFAULT", jsonxx::Array());
+			if (a.size() == 4)
+			{
+				def.r = a.get<jsonxx::Number>(0, 0);
+				def.g = a.get<jsonxx::Number>(1, 0);
+				def.b = a.get<jsonxx::Number>(2, 0);
+				def.a = a.get<jsonxx::Number>(3, 0);
+			}
+			
+			uniform = new ColorUniform(name, def);
+		}
+		else if (type == "event")
+		{
+			uniform = new EventUniform(name);
+		}
+		else if (type == "point2D")
+		{
+			ofVec2f def;
+			
+			jsonxx::Array a = obj.get<jsonxx::Array>("DEFAULT", jsonxx::Array());
+			if (a.size() == 2)
+			{
+				def.x = a.get<jsonxx::Number>(0, 0);
+				def.y = a.get<jsonxx::Number>(1, 0);
+			}
+			
+			uniform = new Point2DUniform(name, def);
+		}
+		
+		return uniform;
 	}
 };
 

@@ -8,19 +8,19 @@ OFX_ISF_BEGIN_NAMESPACE
 
 class Shader;
 class CodeGenerator;
-class ImageParam;
+class ImageUniform;
 template <typename T>
-class Param_;
+class Uniform_;
 
-class Param
+class Uniform
 {
 public:
 
-	typedef Ref_<Param> Ref;
+	typedef Ref_<Uniform> Ref;
 
-	Param(const string& name, unsigned int type_id) : name(name), type_id(type_id)
+	Uniform(const string& name, unsigned int type_id) : name(name), type_id(type_id)
 	{}
-	virtual ~Param() {}
+	virtual ~Uniform() {}
 
 	const string& getName() const { return name; }
 
@@ -38,55 +38,55 @@ protected:
 	unsigned int type_id;
 
 	virtual string getUniform() const = 0;
-	virtual void updateUniform(ofShader *shader) = 0;
+	virtual void update(ofShader *shader) = 0;
 };
 
 //
 
-class Params
+class Uniforms
 {
 public:
 
-	bool addParam(Param::Ref param)
+	bool addUniform(const string& key, Uniform::Ref uniform)
 	{
-		if (params_map.find(param->getName()) != params_map.end())
-			return false;
-		params_map[param->getName()] = param;
+		if (hasUniform(key)) return false;
 		
+		uniforms_map[key] = uniform;
 		updateCache();
-		
 		return true;
 	}
 	
-	void removeParam(const string& key)
+	void removeUniform(const string& key)
 	{
-		params_map.erase(key);
+		if (hasUniform(key)) return false;
+		
+		uniforms_map.erase(key);
+		updateCache();
 	}
 
-	size_t size() const { return params_arr.size(); }
+	size_t size() const { return uniforms.size(); }
 
-	Param::Ref getParam(size_t idx) const { return params_arr.at(idx); }
-	Param::Ref getParam(const string& key) const
+	Uniform::Ref getUniform(size_t idx) const { return uniforms.at(idx); }
+	Uniform::Ref getUniform(const string& key) const
 	{
-		if (params_map.find(key) == params_map.end()) return Param::Ref();
-		return params_map[key];
+		if (uniforms_map.find(key) == uniforms_map.end()) return Uniform::Ref();
+		return uniforms_map[key];
 	}
 	
-	bool hasParam(const string& key) const { return params_map.find(key) != params_map.end(); }
+	bool hasUniform(const string& key) const { return uniforms_map.find(key) != uniforms_map.end(); }
 	
 	template <typename T0, typename T1>
-	void setParam(const string& name, const T1& value);
+	void setUniform(const string& name, const T1& value);
 
 public:
 
-	const vector<Ref_<ImageParam> >& getImageParams() const { return images; }
+	const vector<Ref_<ImageUniform> >& getImageUniforms() const { return image_uniforms; }
 
 protected:
 
-	mutable map<string, Param::Ref> params_map;
-	vector<Param::Ref> params_arr;
-
-	vector<Ref_<ImageParam> > images;
+	vector<Uniform::Ref> uniforms;
+	mutable map<string, Uniform::Ref> uniforms_map;
+	vector<Ref_<ImageUniform> > image_uniforms;
 	
 	void updateCache();
 };
@@ -94,7 +94,7 @@ protected:
 //
 
 template <typename T>
-class Param_ : public Param
+class Uniform_ : public Uniform
 {
 public:
 
@@ -104,7 +104,7 @@ public:
 	T min, max;
 	bool has_range;
 
-	Param_(const string& name, const T& default_value = T()) : Param(name, Type2Int<T>::value()), value(default_value), has_range(false) {}
+	Uniform_(const string& name, const T& default_value = T()) : Uniform(name, Type2Int<T>::value()), value(default_value), has_range(false) {}
 
 	void setRange(const T& min_, const T& max_)
 	{
@@ -127,13 +127,13 @@ public:
 	}
 };
 
-class BoolParam : public Param_<bool>
+class BoolUniform : public Uniform_<bool>
 {
 public:
 
-	BoolParam(const string& name, const bool& default_value = Type()) : Param_(name, default_value) {}
+	BoolUniform(const string& name, const bool& default_value = Type()) : Uniform_(name, default_value) {}
 
-	void updateUniform(ofShader *shader)
+	void update(ofShader *shader)
 	{
 		shader->setUniform1i(name, value);
 	}
@@ -150,13 +150,13 @@ protected:
 	}
 };
 
-class FloatParam : public Param_<float>
+class FloatUniform : public Uniform_<float>
 {
 public:
 
-	FloatParam(const string& name, const float& default_value = Type()) : Param_(name, default_value) {}
+	FloatUniform(const string& name, const float& default_value = Type()) : Uniform_(name, default_value) {}
 
-	void updateUniform(ofShader *shader)
+	void update(ofShader *shader)
 	{
 		if (has_range) value = ofClamp(value, min, max);
 		shader->setUniform1f(name, value);
@@ -174,13 +174,13 @@ protected:
 	}
 };
 
-class ColorParam : public Param_<ofFloatColor>
+class ColorUniform : public Uniform_<ofFloatColor>
 {
 public:
 
-	ColorParam(const string& name, const ofFloatColor& default_value = Type()) : Param_(name, default_value) {}
+	ColorUniform(const string& name, const ofFloatColor& default_value = Type()) : Uniform_(name, default_value) {}
 
-	void updateUniform(ofShader *shader)
+	void update(ofShader *shader)
 	{
 		if (has_range)
 		{
@@ -204,13 +204,13 @@ protected:
 	}
 };
 
-class Point2DParam : public Param_<ofVec2f>
+class Point2DUniform : public Uniform_<ofVec2f>
 {
 public:
 
-	Point2DParam(const string& name, const ofVec2f& default_value = Type()) : Param_(name, default_value) {}
+	Point2DUniform(const string& name, const ofVec2f& default_value = Type()) : Uniform_(name, default_value) {}
 
-	void updateUniform(ofShader *shader)
+	void update(ofShader *shader)
 	{
 		shader->setUniform2fv(name, value.getPtr());
 	}
@@ -227,18 +227,17 @@ protected:
 	}
 };
 
-class ImageParam : public Param_<ofTexture*>
+class ImageUniform : public Uniform_<ofTexture*>
 {
 public:
 
-	int texture_unit_id;
+	ImageUniform(const string& name) : Uniform_(name, NULL), is_rectangle_texture(false) {}
 
-	ImageParam(const string& name) : Param_(name, NULL), texture_unit_id(-1), is_rectangle_texture(false) {}
-
-	void updateUniform(ofShader *shader)
+	void update(ofShader *shader)
 	{
 		if (value == NULL) return;
-		shader->setUniformTexture(name, *value, texture_unit_id);
+		int &texture_unit_id = getTextureUnitID();
+		shader->setUniformTexture(name, *value, ++texture_unit_id);
 
 		string s = "_$NAME$_pct";
 		ofStringReplace(s, "$NAME$", getName());
@@ -263,6 +262,13 @@ public:
 		return result;
 	}
 
+public:
+	
+	static void resetTextureUnitID()
+	{
+		getTextureUnitID() = 0;
+	}
+	
 protected:
 
 	bool is_rectangle_texture;
@@ -277,15 +283,21 @@ protected:
 		ofStringReplace(s, "$SAMPLER$", isRectangleTexture() ? "sampler2DRect" : "sampler2D");
 		return s;
 	}
+	
+	static int& getTextureUnitID()
+	{
+		static int id = 0;
+		return id;
+	}
 };
 
-class EventParam : public Param_<bool>
+class EventUniform : public Uniform_<bool>
 {
 public:
 
-	EventParam(const string& name) : Param_(name, false) {}
+	EventUniform(const string& name) : Uniform_(name, false) {}
 
-	void updateUniform(ofShader *shader)
+	void update(ofShader *shader)
 	{
 		shader->setUniform1i(name, value);
 		value = false;
@@ -306,44 +318,41 @@ protected:
 //
 
 template <typename INT_TYPE, typename EXT_TYPE>
-inline void Params::setParam(const string& name, const EXT_TYPE& value)
+inline void Uniforms::setUniform(const string& name, const EXT_TYPE& value)
 {
-	if (params_map.find(name) == params_map.end())
+	if (!hasUniform(name))
 	{
-		ofLogError("ofxISF::Params") << "param not found: " << name;
+		ofLogError("ofxISF::Uniforms") << "uniform not found: " << name;
 		return;
 	}
 	
-	Param::Ref &p = params_map[name];
+	Uniform::Ref &p = uniforms_map[name];
 	if (!p->isTypeOf<INT_TYPE>())
 	{
-		ofLogError("ofxISF::Params") << "type mismatch";
+		ofLogError("ofxISF::Uniforms") << "type mismatch";
 		return;
 	}
 	
-	Param_<INT_TYPE> *ptr = (Param_<INT_TYPE>*)p.get();
+	Uniform_<INT_TYPE> *ptr = (Uniform_<INT_TYPE>*)p.get();
 	ptr->value = value;
 }
 
 //
 
-inline void Params::updateCache()
+inline void Uniforms::updateCache()
 {
-	params_arr.clear();
-	images.clear();
+	uniforms.clear();
+	image_uniforms.clear();
 	
-	int texture_unit_id = 0;
-	
-	map<string, Param::Ref>::iterator it = params_map.begin();
-	while (it != params_map.end())
+	map<string, Uniform::Ref>::iterator it = uniforms_map.begin();
+	while (it != uniforms_map.end())
 	{
-		Param::Ref o = it->second;
-		params_arr.push_back(o);
+		Uniform::Ref o = it->second;
+		uniforms.push_back(o);
 		if (o->isTypeOf<ofTexture*>())
 		{
-			Ref_<ImageParam> p = o.cast<ImageParam>();
-			p->texture_unit_id = ++texture_unit_id;
-			images.push_back(p);
+			Ref_<ImageUniform> p = o.cast<ImageUniform>();
+			image_uniforms.push_back(p);
 		}
 		it++;
 	}

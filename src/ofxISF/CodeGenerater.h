@@ -3,7 +3,7 @@
 #include "Poco/RegularExpression.h"
 
 #include "Constants.h"
-#include "Params.h"
+#include "Uniforms.h"
 
 OFX_ISF_BEGIN_NAMESPACE
 
@@ -14,62 +14,62 @@ class ImageDecl
 public:
 
 	ImageDecl() {}
-	ImageDecl(const Ref_<ImageParam> &param) : param(param) {}
+	ImageDecl(const Ref_<ImageUniform> &uniform) : uniform(uniform) {}
 
 	string getImgThisPixelString() const
 	{
 		string s;
-		if (param->isRectangleTexture())
+		if (uniform->isRectangleTexture())
 			s = "IMG_THIS_PIXEL_RECT($IMAGE$, _$IMAGE$_pct)";
 		else
 			s = "IMG_THIS_PIXEL_2D($IMAGE$, _$IMAGE$_pct)";
-		ofStringReplace(s, "$IMAGE$", param->getName());
+		ofStringReplace(s, "$IMAGE$", uniform->getName());
 		return s;
 	}
 
 	string getImgThisNormPixelString() const
 	{
 		string s;
-		if (param->isRectangleTexture())
+		if (uniform->isRectangleTexture())
 			s = "IMG_THIS_NORM_PIXEL_RECT($IMAGE$, _$IMAGE$_pct)";
 		else
 			s = "IMG_THIS_NORM_PIXEL_2D($IMAGE$, _$IMAGE$_pct)";
-		ofStringReplace(s, "$IMAGE$", param->getName());
+		ofStringReplace(s, "$IMAGE$", uniform->getName());
 		return s;
 	}
 
 	string getImgPixlString() const
 	{
 		string s;
-		if (param->isRectangleTexture())
+		if (uniform->isRectangleTexture())
 			s = "IMG_PIXEL_RECT($IMAGE$, _$IMAGE$_pct,";
 		else
 			s = "IMG_PIXEL_2D($IMAGE$, _$IMAGE$_pct,";
-		ofStringReplace(s, "$IMAGE$", param->getName());
+		ofStringReplace(s, "$IMAGE$", uniform->getName());
 		return s;
 	}
 
 	string getImgNormPixelString() const
 	{
 		string s;
-		if (param->isRectangleTexture())
+		if (uniform->isRectangleTexture())
 			s = "IMG_NORM_PIXEL_RECT($IMAGE$, _$IMAGE$_pct,";
 		else
 			s = "IMG_NORM_PIXEL_2D($IMAGE$, _$IMAGE$_pct,";
-		ofStringReplace(s, "$IMAGE$", param->getName());
+		ofStringReplace(s, "$IMAGE$", uniform->getName());
 		return s;
 	}
 
 protected:
 
-	Ref_<ImageParam> param;
+	Ref_<ImageUniform> uniform;
 };
 
 class CodeGenerator
 {
 public:
 
-	CodeGenerator(Params &params) : params(params) {}
+	CodeGenerator(Uniforms &uniforms) : uniforms(uniforms) {}
 
 	bool generate(const string& isf_glsl_code)
 	{
@@ -94,7 +94,7 @@ public:
 
 protected:
 
-	Params &params;
+	Uniforms &uniforms;
 
 	string vert;
 	string frag;
@@ -103,23 +103,23 @@ protected:
 
 	bool generate_shader(const string& isf_glsl_code)
 	{
-		const vector<Ref_<ImageParam> >& images = params.getImageParams();
+		const vector<Ref_<ImageUniform> >& images = uniforms.getImageUniforms();
 		map<string, ImageDecl> image_decls;
 
 		for (int i = 0; i < images.size(); i++)
 		{
-			const Ref_<ImageParam> &param = images[i];
-			image_decls[param->getName()] = ImageDecl(param);
+			const Ref_<ImageUniform> &uniform = images[i];
+			image_decls[uniform->getName()] = ImageDecl(uniform);
 		}
 
 		string isf_source = isf_glsl_code;
 		if (!process_lookup_macro(isf_source, image_decls)) return false;
 
-		string uniforms;
-		for (int i = 0; i < params.size(); i++)
+		string uniform_str;
+		for (int i = 0; i < uniforms.size(); i++)
 		{
-			Param::Ref o = params.getParam(i);
-			uniforms += o->getUniform() + "\n";
+			Uniform::Ref o = uniforms.getUniform(i);
+			uniform_str += o->getUniform() + "\n";
 		}
 
 		{
@@ -142,7 +142,7 @@ protected:
 				}
 			);
 
-			ofStringReplace(vert, "$UNIFORMS$", uniforms);
+			ofStringReplace(vert, "$UNIFORMS$", uniform_str);
 		}
 
 		{
@@ -194,7 +194,7 @@ protected:
 				$ISF_SOURCE$
 			);
 
-			ofStringReplace(frag, "$UNIFORMS$", uniforms);
+			ofStringReplace(frag, "$UNIFORMS$", uniform_str);
 			ofStringReplace(frag, "$ISF_SOURCE$", isf_source);
 		}
 
