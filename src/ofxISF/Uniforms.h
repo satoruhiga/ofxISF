@@ -49,23 +49,24 @@ public:
 
 	bool addUniform(const string& key, Uniform::Ref uniform)
 	{
-		if (uniforms_map.find(key) != uniforms_map.end())
-			return false;
+		if (hasUniform(key)) return false;
+		
 		uniforms_map[key] = uniform;
-		
 		updateCache();
-		
 		return true;
 	}
 	
 	void removeUniform(const string& key)
 	{
+		if (hasUniform(key)) return false;
+		
 		uniforms_map.erase(key);
+		updateCache();
 	}
 
-	size_t size() const { return uniforms_arr.size(); }
+	size_t size() const { return uniforms.size(); }
 
-	Uniform::Ref getUniform(size_t idx) const { return uniforms_arr.at(idx); }
+	Uniform::Ref getUniform(size_t idx) const { return uniforms.at(idx); }
 	Uniform::Ref getUniform(const string& key) const
 	{
 		if (uniforms_map.find(key) == uniforms_map.end()) return Uniform::Ref();
@@ -83,9 +84,8 @@ public:
 
 protected:
 
+	vector<Uniform::Ref> uniforms;
 	mutable map<string, Uniform::Ref> uniforms_map;
-	vector<Uniform::Ref> uniforms_arr;
-
 	vector<Ref_<ImageUniform> > image_uniforms;
 	
 	void updateCache();
@@ -231,14 +231,13 @@ class ImageUniform : public Uniform_<ofTexture*>
 {
 public:
 
-	int texture_unit_id;
-
-	ImageUniform(const string& name) : Uniform_(name, NULL), texture_unit_id(-1), is_rectangle_texture(false) {}
+	ImageUniform(const string& name) : Uniform_(name, NULL), is_rectangle_texture(false) {}
 
 	void update(ofShader *shader)
 	{
 		if (value == NULL) return;
-		shader->setUniformTexture(name, *value, texture_unit_id);
+		int &texture_unit_id = getTextureUnitID();
+		shader->setUniformTexture(name, *value, ++texture_unit_id);
 
 		string s = "_$NAME$_pct";
 		ofStringReplace(s, "$NAME$", getName());
@@ -263,6 +262,13 @@ public:
 		return result;
 	}
 
+public:
+	
+	static void resetTextureUnitID()
+	{
+		getTextureUnitID() = 0;
+	}
+	
 protected:
 
 	bool is_rectangle_texture;
@@ -276,6 +282,12 @@ protected:
 		ofStringReplace(s, "$NAME$", getName());
 		ofStringReplace(s, "$SAMPLER$", isRectangleTexture() ? "sampler2DRect" : "sampler2D");
 		return s;
+	}
+	
+	static int& getTextureUnitID()
+	{
+		static int id = 0;
+		return id;
 	}
 };
 
@@ -308,7 +320,7 @@ protected:
 template <typename INT_TYPE, typename EXT_TYPE>
 inline void Uniforms::setUniform(const string& name, const EXT_TYPE& value)
 {
-	if (uniforms_map.find(name) == uniforms_map.end())
+	if (!hasUniform(name))
 	{
 		ofLogError("ofxISF::Uniforms") << "uniform not found: " << name;
 		return;
@@ -329,20 +341,17 @@ inline void Uniforms::setUniform(const string& name, const EXT_TYPE& value)
 
 inline void Uniforms::updateCache()
 {
-	uniforms_arr.clear();
+	uniforms.clear();
 	image_uniforms.clear();
-	
-	int texture_unit_id = 0;
 	
 	map<string, Uniform::Ref>::iterator it = uniforms_map.begin();
 	while (it != uniforms_map.end())
 	{
 		Uniform::Ref o = it->second;
-		uniforms_arr.push_back(o);
+		uniforms.push_back(o);
 		if (o->isTypeOf<ofTexture*>())
 		{
 			Ref_<ImageUniform> p = o.cast<ImageUniform>();
-			p->texture_unit_id = ++texture_unit_id;
 			image_uniforms.push_back(p);
 		}
 		it++;
