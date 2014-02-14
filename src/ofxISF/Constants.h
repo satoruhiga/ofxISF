@@ -27,6 +27,10 @@ struct Type2Int
 	}
 };
 
+struct Input {
+	string name, type;
+};
+
 struct PresistentBuffer
 {
 	string name;

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Constants.h"
-#include "Params.h"
+#include "Uniforms.h"
 
 #include "jsonxx.h"
 
@@ -11,10 +11,10 @@ class JSONParser
 {
 public:
 
-	JSONParser(ofVec2f &render_size, Params &params, vector<PresistentBuffer> &presistent_buffers, vector<Pass> &passes)
+	JSONParser(ofVec2f &render_size, Uniforms &uniforms, vector<PresistentBuffer> &presistent_buffers, vector<Pass> &passes)
 	:
 		render_size(render_size),
-		params(params),
+		uniforms(uniforms),
 		presistent_buffers(presistent_buffers),
 		passes(passes)
 	{}
@@ -41,17 +41,17 @@ public:
 			jsonxx::Object o = a.get<jsonxx::Object>(i, jsonxx::Object());
 			string name = o.get<string>("NAME", "");
 			
-			Param::Ref param = setup_input_param(o);
-			if (param)
+			Uniform::Ref uniform = setup_input_uniform(o);
+			if (uniform)
 			{
-				// param type changed
-				if (params.hasParam(name)
-					&& params.getParam(name)->getTypeID() != param->getTypeID())
+				// uniform type changed
+				if (uniforms.hasUniform(name)
+					&& uniforms.getUniform(name)->getTypeID() != uniform->getTypeID())
 				{
-					params.removeParam(name);
+					uniforms.removeUniform(name);
 				}
 
-				params.addParam(name, param);
+				uniforms.addUniform(name, uniform);
 			}
 		}
 		
@@ -84,7 +84,7 @@ public:
 				PresistentBuffer buf;
 				buf.name = name;
 				
-				// TODO: param expression
+				// TODO: uniform expression
 				buf.width = ...;
 				buf.height = ...;
 				
@@ -106,7 +106,7 @@ public:
 			
 			string target = pass.get<string>("TARGET", "");
 			
-			// TODO: param expression
+			// TODO: uniform expression
 			string width = pass.get<string>("WIDTH", "");
 			string height = pass.get<string>("HEIGHT", "");
 			
@@ -132,30 +132,30 @@ protected:
 	vector<string> categories;
 
 	ofVec2f &render_size;
-	Params &params;
+	Uniforms &uniforms;
 	vector<PresistentBuffer> &presistent_buffers;
 	vector<Pass> &passes;
 
 protected:
 
-	Param::Ref setup_input_param(const jsonxx::Object& obj)
+	Uniform::Ref setup_input_uniform(const jsonxx::Object& obj)
 	{
 		string name = obj.get<string>("NAME", "");
 		string type = obj.get<string>("TYPE", "");
 
-		Param::Ref param = NULL;
+		Uniform::Ref uniform = NULL;
 
 		if (type == "image")
 		{
-			param = new ImageParam(name);
+			uniform = new ImageUniform(name);
 		}
 		else if (type == "bool")
 		{
-			param = new BoolParam(name, obj.get<bool>("DEFAULT", false));
+			uniform = new BoolUniform(name, obj.get<bool>("DEFAULT", false));
 		}
 		else if (type == "float")
 		{
-			FloatParam *o = new FloatParam(name, obj.get<jsonxx::Number>("DEFAULT", 0));
+			FloatUniform *o = new FloatUniform(name, obj.get<jsonxx::Number>("DEFAULT", 0));
 
 			if (obj.has<jsonxx::Number>("MIN") && obj.has<jsonxx::Number>("MAX"))
 			{
@@ -164,7 +164,7 @@ protected:
 				o->setRange(m0, m1);
 			}
 
-			param = o;
+			uniform = o;
 		}
 		else if (type == "color")
 		{
@@ -179,11 +179,11 @@ protected:
 				def.a = a.get<jsonxx::Number>(3, 0);
 			}
 
-			param = new ColorParam(name, def);
+			uniform = new ColorUniform(name, def);
 		}
 		else if (type == "event")
 		{
-			param = new EventParam(name);
+			uniform = new EventUniform(name);
 		}
 		else if (type == "point2D")
 		{
@@ -196,10 +196,10 @@ protected:
 				def.y = a.get<jsonxx::Number>(1, 0);
 			}
 
-			param = new Point2DParam(name, def);
+			uniform = new Point2DUniform(name, def);
 		}
 
-		return param;
+		return uniform;
 	}
 };
 
