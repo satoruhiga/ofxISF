@@ -13,7 +13,10 @@ public:
 	Shader()
 	:
 		json_parser(render_size, params, presistent_buffers, passes),
-		code_gen(params)
+		code_gen(params),
+		current_framebuffer(NULL),
+		result_texture(NULL),
+		internalformat(GL_RGB)
 	{}
 
 	void setup(int w, int h, int internalformat = GL_RGB)
@@ -21,7 +24,7 @@ public:
 		render_size.set(w, h);
 		this->internalformat = internalformat;
 		
-		ofFbo &fbo = framebuffers["DEFAULT"];
+		ofFbo &fbo = framebuffer_map["DEFAULT"];
 		fbo.allocate(render_size.x, render_size.y, internalformat);
 		
 		fbo.begin();
@@ -36,7 +39,9 @@ public:
 			ofLogError("ofxISF") << "no such file";
 			return false;
 		}
-
+		
+		name = ofFilePath::getBaseName(path);
+		
 		string data = ofBufferFromFile(path).getText();
 		if (!parse_directive(data, header_directive, shader_directive)) return false;
 		if (!reload_shader()) return false;
@@ -58,7 +63,7 @@ public:
 		}
 		if (need_reload_shader) reload_shader();
 		
-		current_framebuffer = &framebuffers["DEFAULT"];
+		current_framebuffer = &framebuffer_map["DEFAULT"];
 		current_framebuffer->begin();
 		ofClear(0);
 		current_framebuffer->end();
@@ -74,7 +79,11 @@ public:
 				Pass &pass = passes[i];
 				if (!pass.target.empty())
 				{
-					current_framebuffer = &framebuffers[pass.target];
+					current_framebuffer = &framebuffer_map[pass.target];
+				}
+				else
+				{
+					current_framebuffer = &framebuffer_map["DEFAULT"];
 				}
 				render_pass(i);
 			}
@@ -118,9 +127,32 @@ public:
 	
 	ofTexture& getTextureRecerence()
 	{
-		return current_framebuffer->getTextureReference();
+		return *result_texture;
 	}
 	
+	//
+	
+	void setImage(ofTexture *img)
+	{
+		if (getImageParams().empty()) return;
+		const string& name = getImageParams().front()->getName();
+		params.setParam<ofTexture*>(name, img);
+	}
+	
+	void setImage(ofTexture &img)
+	{
+		if (getImageParams().empty()) return;
+		const string& name = getImageParams().front()->getName();
+		setImage(name, &img);
+	}
+	
+	void setImage(ofImage &img)
+	{
+		if (getImageParams().empty()) return;
+		const string& name = getImageParams().front()->getName();
+		setImage(name, &img.getTextureReference());
+	}
+
 	//
 	
 	template <typename INT_TYPE, typename EXT_TYPE>
@@ -144,6 +176,21 @@ public:
 		setImage(name, &img.getTextureReference());
 	}
 	
+	//
+	
+	template <typename T>
+	bool hasParam(const string& name) const
+	{
+		if (!params.hasParam(name)) return false;
+		if (!params.getParam(name)->isTypeOf<T>()) return false;
+		return true;
+	}
+	
+	bool hasImage(const string& name) const
+	{
+		return hasParam<ofTexture*>(name);
+	}
+	
 	void dumpShader() const
 	{
 		code_gen.dumpShader();
@@ -151,14 +198,21 @@ public:
 
 	//
 	
+	const string& getName() const { return name; }
 	const string& getDescription() const { return json_parser.getDescription(); }
 	const string& getCredit() const { return json_parser.getCredit(); }
 	const vector<string>& getCategories() const { return json_parser.getCategories(); }
+	
+	//
+	
+	const vector<Ref_<ImageParam> >& getImageParams() const { return params.getImageParams(); }
+	const vector<ofTexture*>& getTextures() const { return textures; }
 	
 protected:
 
 	ofVec2f render_size;
 
+	string name;
 	string description;
 	string credit;
 	vector<string> categories;
@@ -170,8 +224,11 @@ protected:
 	string header_directive;
 	string shader_directive;
 
-	map<string, ofFbo> framebuffers;
+	map<string, ofFbo> framebuffer_map;
 	ofFbo *current_framebuffer;
+	
+	vector<ofTexture*> textures;
+	ofTexture *result_texture;
 	
 	vector<PresistentBuffer> presistent_buffers;
 	vector<Pass> passes;
@@ -209,14 +266,18 @@ protected:
 	
 	bool reload_shader()
 	{
-		current_framebuffer = &framebuffers["DEFAULT"];
+		textures.clear();
+		current_framebuffer = &framebuffer_map["DEFAULT"];
+		
+		textures.push_back(&framebuffer_map["DEFAULT"].getTextureReference());
 		
 		if (!json_parser.parse(header_directive)) return false;
 		
 		for (int i = 0; i < presistent_buffers.size(); i++)
 		{
 			const PresistentBuffer &buf = presistent_buffers[i];
-			ofFbo &fbo = framebuffers[buf.name];
+			ofFbo &fbo = framebuffer_map[buf.name];
+			textures.push_back(&fbo.getTextureReference());
 			
 			if (!fbo.isAllocated())
 			{
@@ -229,7 +290,20 @@ protected:
 			
 			ImageParam *param = new ImageParam(buf.name);
 			param->set(&fbo.getTextureReference());
-			params.addParam(Param::Ref(param));
+			params.addParam(buf.name, Param::Ref(param));
+		}
+		
+		{
+			string result_texture_target_name = "";
+			if (!passes.empty())
+			{
+				result_texture_target_name = passes.back().target;
+			}
+			
+			if (result_texture_target_name == "")
+				result_texture_target_name = "DEFAULT";
+			
+			result_texture = &framebuffer_map[result_texture_target_name].getTextureReference();
 		}
 		
 		if (!code_gen.generate(shader_directive)) return false;

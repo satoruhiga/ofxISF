@@ -51,7 +51,7 @@ public:
 					params.removeParam(name);
 				}
 
-				params.addParam(param);
+				params.addParam(name, param);
 			}
 		}
 		

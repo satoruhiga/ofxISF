@@ -47,11 +47,11 @@ class Params
 {
 public:
 
-	bool addParam(Param::Ref param)
+	bool addParam(const string& key, Param::Ref param)
 	{
-		if (params_map.find(param->getName()) != params_map.end())
+		if (params_map.find(key) != params_map.end())
 			return false;
-		params_map[param->getName()] = param;
+		params_map[key] = param;
 		
 		updateCache();
 		
@@ -79,14 +79,14 @@ public:
 
 public:
 
-	const vector<Ref_<ImageParam> >& getImageParams() const { return images; }
+	const vector<Ref_<ImageParam> >& getImageParams() const { return image_params; }
 
 protected:
 
 	mutable map<string, Param::Ref> params_map;
 	vector<Param::Ref> params_arr;
 
-	vector<Ref_<ImageParam> > images;
+	vector<Ref_<ImageParam> > image_params;
 	
 	void updateCache();
 };
@@ -330,7 +330,7 @@ inline void Params::setParam(const string& name, const EXT_TYPE& value)
 inline void Params::updateCache()
 {
 	params_arr.clear();
-	images.clear();
+	image_params.clear();
 	
 	int texture_unit_id = 0;
 	
@@ -343,7 +343,7 @@ inline void Params::updateCache()
 		{
 			Ref_<ImageParam> p = o.cast<ImageParam>();
 			p->texture_unit_id = ++texture_unit_id;
-			images.push_back(p);
+			image_params.push_back(p);
 		}
 		it++;
 	}
