@@ -124,7 +124,7 @@ public:
 
 	//
 	
-	ofTexture& getTextureRecerence()
+	ofTexture& getTextureReference()
 	{
 		return *result_texture;
 	}

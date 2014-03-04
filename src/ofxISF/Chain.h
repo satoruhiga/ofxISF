@@ -62,7 +62,7 @@ public:
 			Shader *o = p.shader;
 			o->setImage(tex);
 			o->update();
-			tex = &o->getTextureRecerence();
+			tex = &o->getTextureReference();
 		}
 		
 		result = tex;
