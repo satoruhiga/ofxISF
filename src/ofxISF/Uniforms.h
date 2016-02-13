@@ -28,6 +28,8 @@ public:
 	bool isTypeOf() const { return Type2Int<TT>::value() == type_id; }
 	
 	unsigned int getTypeID() const { return type_id; }
+    
+    bool useNoralizedValue = false;
 
 protected:
 
@@ -178,7 +180,11 @@ public:
 
 	void update(ofShader *shader)
 	{
-		if (has_range) value = ofClamp(value, min, max);
+        if (useNoralizedValue) {
+            if (has_range) value = ofMap(value, 0, 1, min, max);
+        } else {
+            if (has_range) value = ofClamp(value, min, max);
+        }
 		shader->setUniform1f(name, value);
 	}
 
