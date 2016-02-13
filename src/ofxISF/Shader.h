@@ -44,6 +44,7 @@ public:
             code_generator.useDefaultVert = false;
             code_generator.rawVertexShader = ofBufferFromFile(vertName).getText();
         }
+        
 		if (!ofFile::doesFileExist(fragName))
 		{
 			ofLogError("ofxISF") << "no such file";
@@ -51,13 +52,11 @@ public:
 		}
 		
 		name = ofFilePath::getBaseName(fragName);
-		
 		string data = ofBufferFromFile(fragName).getText();
 		if (!parse_directive(data, header_directive, shader_directive)) return false;
 		if (!reload_shader()) return false;
 
-        code_generator.dumpShader();
-		return true;
+        return true;
 	}
 
 	void update()
