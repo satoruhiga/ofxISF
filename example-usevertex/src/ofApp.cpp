@@ -37,6 +37,7 @@ void ofApp::keyReleased(int key){
 //--------------------------------------------------------------
 void ofApp::mouseMoved(int x, int y ){
     isf.setUniform<ofVec2f>("center", ofPoint(x, y));
+    isf.setUniform<float>("scale", ofMap(x, 0, ofGetWidth(), 0.0, 1.0));
 }
 
 //--------------------------------------------------------------
