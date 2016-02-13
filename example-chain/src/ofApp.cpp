@@ -22,7 +22,7 @@ public:
         chain.load("CubicLensDistortion");
         chain.load("Circular Screen");
 		
-		chain.setImage(video.getTextureReference());
+		chain.setImage(video.getTexture());
 	}
 	
 	void update()
