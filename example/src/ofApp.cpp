@@ -18,7 +18,7 @@ public:
 		video.initGrabber(1280, 720);
 		
 		isf.setup(1280, 720, GL_RGB32F);
-		isf.load("isf-test.fs");
+		isf.load("isf-test");
 		
 		isf.setImage("inputImage", video.getTexture());
 	}
