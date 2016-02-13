@@ -166,7 +166,7 @@ public:
 	
 	void setImage(ofImage &img)
 	{
-		setImage(&img.getTextureReference());
+		setImage(&img.getTexture());
 	}
 
 	//
@@ -189,7 +189,7 @@ public:
 
 	void setImage(const string& name, ofImage &img)
 	{
-		setImage(name, &img.getTextureReference());
+		setImage(name, &img.getTexture());
 	}
 	
 	//
@@ -333,7 +333,7 @@ protected:
 		textures.clear();
 		current_framebuffer = &framebuffer_map["DEFAULT"];
 		
-		textures.push_back(&framebuffer_map["DEFAULT"].getTextureReference());
+		textures.push_back(&framebuffer_map["DEFAULT"].getTexture());
 		
 		if (!parse(header_directive)) return false;
 		
@@ -341,7 +341,7 @@ protected:
 		{
 			const PresistentBuffer &buf = presistent_buffers[i];
 			ofFbo &fbo = framebuffer_map[buf.name];
-			textures.push_back(&fbo.getTextureReference());
+			textures.push_back(&fbo.getTexture());
 			
 			if (!fbo.isAllocated())
 			{
@@ -353,7 +353,7 @@ protected:
 			}
 			
 			ImageUniform *uniform = new ImageUniform(buf.name);
-			uniform->set(&fbo.getTextureReference());
+			uniform->set(&fbo.getTexture());
 			uniforms.addUniform(buf.name, Uniform::Ref(uniform));
 		}
 		
