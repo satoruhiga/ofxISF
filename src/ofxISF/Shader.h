@@ -30,21 +30,33 @@ public:
 		ofClear(0);
 		fbo.end();
 	}
+    
+    bool load(string shaderName){
+        return load(shaderName + ".vs", shaderName + ".fs");
+    }
 
-	bool load(const string& path)
+	bool load(string vertName, string fragName)
 	{
-		if (!ofFile::doesFileExist(path))
+        if (!ofFile::doesFileExist(vertName))
+        {
+            code_generator.useDefaultVert = true;
+        } else {
+            code_generator.useDefaultVert = false;
+            code_generator.rawVertexShader = ofBufferFromFile(vertName).getText();
+        }
+		if (!ofFile::doesFileExist(fragName))
 		{
 			ofLogError("ofxISF") << "no such file";
 			return false;
 		}
 		
-		name = ofFilePath::getBaseName(path);
+		name = ofFilePath::getBaseName(fragName);
 		
-		string data = ofBufferFromFile(path).getText();
+		string data = ofBufferFromFile(fragName).getText();
 		if (!parse_directive(data, header_directive, shader_directive)) return false;
 		if (!reload_shader()) return false;
 
+        code_generator.dumpShader();
 		return true;
 	}
 
