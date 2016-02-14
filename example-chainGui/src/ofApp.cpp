@@ -9,10 +9,7 @@ void ofApp::setup(){
     
     chain.setup(1280, 720, GL_RGB32F);
     chain.setImage(video.getTexture());
-    chain.load("isf-test");
-
     gui.setup(&chain);
-    gui.addGuiParameters();
 }
 
 void ofApp::update(){
@@ -22,10 +19,12 @@ void ofApp::update(){
 }
 
 void ofApp::draw(){
+    ofSetColor(255);
     if (chain.size() > 0) {
-        ofSetColor(255);
         chain.draw(0, 0);
         gui.draw();
+    } else {
+        ofDrawBitmapString("Drop your ISF files here!", 40, 40);
     }
 }
 
@@ -34,8 +33,11 @@ void ofApp::dragEvent(ofDragInfo dragInfo){
         string extention = dragInfo.files[i].substr(dragInfo.files[i].length()-3, dragInfo.files[i].length());
         string shaderName = dragInfo.files[i].substr(0,dragInfo.files[i].length()-3);
         if (extention == ".fs" || extention == ".vs") {
-            chain.load(shaderName);
-            gui.addGuiParameters();
+            if(!chain.load(shaderName)){
+                ofLogError() << "Bad ISF format";
+            } else {
+                gui.addGuiParameters();
+            }
         }
     }
 }

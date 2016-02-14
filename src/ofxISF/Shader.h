@@ -397,6 +397,9 @@ protected:
 	
 	bool parse(const string& header_directive)
 	{
+        if (!(header_directive.find("$WIDTH") == string::npos)) {
+            return false;
+        }
 		jsonxx::Object o;
 		assert(o.parse(header_directive));
 		
