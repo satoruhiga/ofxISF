@@ -30,22 +30,33 @@ public:
 		ofClear(0);
 		fbo.end();
 	}
+    
+    bool load(string shaderName){
+        return load(shaderName + ".vs", shaderName + ".fs");
+    }
 
-	bool load(const string& path)
+	bool load(string vertName, string fragName)
 	{
-		if (!ofFile::doesFileExist(path))
+        if (!ofFile::doesFileExist(vertName))
+        {
+            code_generator.useDefaultVert = true;
+        } else {
+            code_generator.useDefaultVert = false;
+            code_generator.rawVertexShader = ofBufferFromFile(vertName).getText();
+        }
+        
+		if (!ofFile::doesFileExist(fragName))
 		{
 			ofLogError("ofxISF") << "no such file";
 			return false;
 		}
 		
-		name = ofFilePath::getBaseName(path);
-		
-		string data = ofBufferFromFile(path).getText();
+		name = ofFilePath::getBaseName(fragName);
+		string data = ofBufferFromFile(fragName).getText();
 		if (!parse_directive(data, header_directive, shader_directive)) return false;
 		if (!reload_shader()) return false;
 
-		return true;
+        return true;
 	}
 
 	void update()
@@ -154,7 +165,7 @@ public:
 	
 	void setImage(ofImage &img)
 	{
-		setImage(&img.getTextureReference());
+		setImage(&img.getTexture());
 	}
 
 	//
@@ -177,7 +188,7 @@ public:
 
 	void setImage(const string& name, ofImage &img)
 	{
-		setImage(name, &img.getTextureReference());
+		setImage(name, &img.getTexture());
 	}
 	
 	//
@@ -321,7 +332,7 @@ protected:
 		textures.clear();
 		current_framebuffer = &framebuffer_map["DEFAULT"];
 		
-		textures.push_back(&framebuffer_map["DEFAULT"].getTextureReference());
+		textures.push_back(&framebuffer_map["DEFAULT"].getTexture());
 		
 		if (!parse(header_directive)) return false;
 		
@@ -329,7 +340,7 @@ protected:
 		{
 			const PresistentBuffer &buf = presistent_buffers[i];
 			ofFbo &fbo = framebuffer_map[buf.name];
-			textures.push_back(&fbo.getTextureReference());
+			textures.push_back(&fbo.getTexture());
 			
 			if (!fbo.isAllocated())
 			{
@@ -341,7 +352,7 @@ protected:
 			}
 			
 			ImageUniform *uniform = new ImageUniform(buf.name);
-			uniform->set(&fbo.getTextureReference());
+			uniform->set(&fbo.getTexture());
 			uniforms.addUniform(buf.name, Uniform::Ref(uniform));
 		}
 		

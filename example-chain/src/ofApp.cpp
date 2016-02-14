@@ -18,10 +18,11 @@ public:
 		video.initGrabber(1280, 720);
 		
 		chain.setup(1280, 720);
-		chain.load("ZoomBlur.fs");
-		chain.load("CubicLensDistortion.fs");
+		chain.load("ZoomBlur");
+        chain.load("CubicLensDistortion");
+        chain.load("Circular Screen");
 		
-		chain.setImage(video.getTextureReference());
+		chain.setImage(video.getTexture());
 	}
 	
 	void update()
@@ -34,7 +35,7 @@ public:
 	{
 		chain.draw(0, 0);
 	}
-
+    
 	void keyPressed(int key)
 	{
 		chain.setEnable("ZoomBlur", !chain.getEnable("ZoomBlur"));

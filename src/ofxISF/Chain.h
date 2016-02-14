@@ -80,7 +80,7 @@ public:
 	
 	inline void setImage(ofTexture *img) { input = img; }
 	inline void setImage(ofTexture &img) { setImage(&img); }
-	inline void setImage(ofImage &img) { setImage(img.getTextureReference()); }
+	inline void setImage(ofImage &img) { setImage(img.getTexture()); }
 	
 	inline float getWidth() const { return width; }
 	inline float getHeight() const { return height; }
