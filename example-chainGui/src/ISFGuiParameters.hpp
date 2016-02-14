@@ -7,21 +7,12 @@
 //
 
 #pragma once
-
-#include "ofParameterGroup.h"
-#include "ofParameter.h"
 #include "ofMain.h"
 
-template <typename T>
-class InputParameter {
+class ISFGuiParameters {
 public:
-    string name;
-    ofParameter<T> value;
-};
-
-class ISFGuiRenderer {
-public:
-    ISFGuiRenderer();
+    ISFGuiParameters();
     void setup(string name);
     ofParameterGroup parameters;
+    vector<string> types;
 };

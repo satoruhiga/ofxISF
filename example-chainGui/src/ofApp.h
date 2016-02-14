@@ -3,7 +3,7 @@
 #include "ofMain.h"
 #include "ofxISF.h"
 #include "ofxGui.h"
-#include "ISFGuiRenderer.hpp"
+#include "ISFGuiParameters.hpp"
 
 class ofApp : public ofBaseApp{
     
@@ -24,10 +24,10 @@ public:
     void dragEvent(ofDragInfo dragInfo);
     void gotMessage(ofMessage msg);
     
-    void setupGui();
+    void addGuiParameters();
     
     ofxISF::Chain chain;
     ofVideoGrabber video;
     ofxPanel gui;
-    vector<ISFGuiRenderer> guiRenderer;
+    vector<ISFGuiParameters> guiParams;
 };
