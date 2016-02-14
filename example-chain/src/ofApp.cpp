@@ -20,7 +20,6 @@ public:
 		chain.setup(1280, 720);
 		chain.load("ZoomBlur");
         chain.load("CubicLensDistortion");
-        chain.load("Circular Screen");
 		
 		chain.setImage(video.getTexture());
 	}

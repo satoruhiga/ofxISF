@@ -35,10 +35,17 @@ public:
         int j = chain->size() - 1;
         ISFGuiParameters gr;
         gr.setup(chain->getShader(j)->getName());
+        
+        ofParameter<bool> isEnable;
+        isEnable.set("Enable", true);
+        gr.parameters.add(isEnable);
+        gr.types.push_back("enebale");
+        
         for (int i = 0; i < chain->getShader(j)->getInputs().size(); i++) {
             string name = chain->getShader(j)->getInputs().getUniform(i)->getName();
             string type;
             chain->getShader(j)->getInputs().getUniform(i)->useNoralizedValue = true;
+            
             if (chain->getShader(j)->getInputs().getUniform(i)->isTypeOf<float>())
             {
                 type = "float";
@@ -85,6 +92,11 @@ public:
             for (int i = 0; i < guiParams[j].parameters.size(); i++) {
                 string name = guiParams[j].parameters[i].getName();
                 string type = guiParams[j].types[i];
+                
+                if (type == "enebale") {
+                    ofParameter<bool> value = guiParams[j].parameters.getBool(name);
+                    chain->setEnable(j, value);
+                }
                 if (type == "float") {
                     ofParameter<float> value = guiParams[j].parameters.getFloat(name);
                     chain->getShader(j)->setUniform<float>(name, value);
