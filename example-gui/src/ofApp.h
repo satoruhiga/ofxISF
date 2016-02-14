@@ -4,16 +4,12 @@
 #include "ofxISF.h"
 #include "ofxGui.h"
 
-class floatInput {
+template <typename T>
+class inputParameter
+{
 public:
     string name;
-    ofParameter<float> value;
-};
-
-class vec2fInput {
-public:
-    string name;
-    ofParameter<ofVec2f> value;
+    ofParameter<T> value;
 };
 
 class ofApp : public ofBaseApp{
@@ -41,7 +37,7 @@ public:
     ofVideoGrabber video;
     
     ofxPanel gui;
-    vector<floatInput> floatInputs;
-    vector<vec2fInput> vec2fInputs;
-
+    vector<inputParameter<float>> floatInputs;
+    vector<inputParameter<ofVec2f>> vec2fInputs;
+    vector<inputParameter<ofFloatColor>> colorInputs;
 };

@@ -27,6 +27,11 @@ void ofApp::update(){
         ofVec2f value = vec2fInputs[i].value;
         isf.setUniform<ofVec2f>(name, value);
     }
+    for (int i = 0; i < colorInputs.size(); i++) {
+        string name = colorInputs[i].name;
+        ofFloatColor value = colorInputs[i].value;
+        isf.setUniform<ofFloatColor>(name, value);
+    }
     
     video.update();
     isf.update();
@@ -47,18 +52,22 @@ void ofApp::setupGui(){
         isf.getInputs().getUniform(i)->useNoralizedValue = true;
         if (isf.getInputs().getUniform(i)->isTypeOf<float>()) {
             type = "float";
-            floatInput fi;
-            fi.name = name;
-            gui.add(fi.value.set(fi.name, 0.5, 0, 1));
-            floatInputs.push_back(fi);
+            inputParameter<float> param;
+            param.name = name;
+            gui.add(param.value.set(param.name, 0.5, 0, 1));
+            floatInputs.push_back(param);
         } else if (isf.getInputs().getUniform(i)->isTypeOf<ofVec2f>()){
             type = "ofVec2f";
-            vec2fInput vi;
-            vi.name = name;
-            gui.add(vi.value.set(vi.name,ofVec2f(ofGetWidth()*.5,ofGetHeight()*.5),ofVec2f(0,0),ofVec2f(ofGetWidth(),ofGetHeight())));
-            vec2fInputs.push_back(vi);
+            inputParameter<ofVec2f> param;
+            param.name = name;
+            gui.add(param.value.set(param.name,ofVec2f(ofGetWidth()*.5,ofGetHeight()*.5),ofVec2f(0,0),ofVec2f(ofGetWidth(),ofGetHeight())));
+            vec2fInputs.push_back(param);
         } else if (isf.getInputs().getUniform(i)->isTypeOf<ofFloatColor>()){
             type = "ofFloatColor";
+            inputParameter<ofFloatColor> param;
+            param.name = name;
+            gui.add(param.value.set(param.name, ofFloatColor(0.5, 0.5, 0.5, 1.0), ofFloatColor(0., 0., 0., 0.), ofFloatColor(1., 1., 1., 1.)));
+            colorInputs.push_back(param);
         } else if (isf.getInputs().getUniform(i)->isTypeOf<ofTexture*>()){
             type = "ofTexture";
         } else if (isf.getInputs().getUniform(i)->isTypeOf<bool>()){
