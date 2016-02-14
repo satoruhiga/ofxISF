@@ -2,6 +2,7 @@
 
 #include "ofMain.h"
 #include "ofxISF.h"
+#include "ofxISF/Gui.h"
 
 class ofApp : public ofBaseApp{
     
