@@ -5,3 +5,4 @@
 #include "ofxISF/CodeGenerater.h"
 #include "ofxISF/Shader.h"
 #include "ofxISF/Chain.h"
+#include "ofxISF/Gui.h"
