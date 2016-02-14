@@ -57,28 +57,41 @@ void ofApp::setupGui(){
         string name = chain.getShader(j)->getInputs().getUniform(i)->getName();
         string type;
         chain.getShader(j)->getInputs().getUniform(i)->useNoralizedValue = true;
-        if (chain.getShader(j)->getInputs().getUniform(i)->isTypeOf<float>()) {
+        if (chain.getShader(j)->getInputs().getUniform(i)->isTypeOf<float>())
+        {
             type = "float";
             InputParameter<float> param;
             param.name = name;
             param.value.set(name, 0.5, 0.0, 1.0);
             gr.parameters.add(param.value);
-        } else if (chain.getShader(j)->getInputs().getUniform(i)->isTypeOf<ofVec2f>()){
+        }
+        else if (chain.getShader(j)->getInputs().getUniform(i)->isTypeOf<ofVec2f>())
+        {
             type = "ofVec2f";
             InputParameter<ofVec2f> param;
             param.name = name;
             param.value.set(name, ofVec2f(ofGetWidth()*.5,ofGetHeight()*.5), ofVec2f(0,0),ofVec2f(ofGetWidth(), ofGetHeight()));
             gr.parameters.add(param.value);
-        } else if (chain.getShader(j)->getInputs().getUniform(i)->isTypeOf<ofFloatColor>()){
+        }
+        else if (chain.getShader(j)->getInputs().getUniform(i)->isTypeOf<ofFloatColor>())
+        {
             type = "ofFloatColor";
             InputParameter<ofFloatColor> param;
             param.name = name;
             param.value.set(name, ofFloatColor(0.5, 0.5, 0.5, 1.0), ofFloatColor(0., 0., 0., 0.), ofFloatColor(1., 1., 1., 1.));
             gr.parameters.add(param.value);
-        } else if (chain.getShader(j)->getInputs().getUniform(i)->isTypeOf<ofTexture*>()){
-            type = "ofTexture";
-        } else if (chain.getShader(j)->getInputs().getUniform(i)->isTypeOf<bool>()){
+        }
+        else if (chain.getShader(j)->getInputs().getUniform(i)->isTypeOf<bool>())
+        {
             type = "bool";
+            InputParameter<bool> param;
+            param.name = name;
+            param.value.set(name, true);
+            gr.parameters.add(param.value);
+        }
+        else if (chain.getShader(j)->getInputs().getUniform(i)->isTypeOf<ofTexture*>())
+        {
+            type = "ofTexture";
         }
     }
     gui.add(gr.parameters);

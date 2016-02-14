@@ -5,15 +5,6 @@
 #include "ofxGui.h"
 #include "ISFGuiRenderer.hpp"
 
-/*
-class ParamGui {
-public:
-    vector<InputParameter<float>> floatInputs;
-    vector<InputParameter<ofVec2f>> vec2fInputs;
-    vector<InputParameter<ofFloatColor>> colorInputs;
-};
- */
-
 class ofApp : public ofBaseApp{
     
 public:
@@ -38,13 +29,5 @@ public:
     ofxISF::Chain chain;
     ofVideoGrabber video;
     ofxPanel gui;
-    //ofParameterGroup parameters;
     vector<ISFGuiRenderer> guiRenderer;
-
-    /*
-    vector<ofxPanel> guis;
-    vector<inputParameter<float>> floatInputs;
-    vector<inputParameter<ofVec2f>> vec2fInputs;
-    vector<inputParameter<ofFloatColor>> colorInputs;
-     */
 };
