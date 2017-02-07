@@ -23,7 +23,7 @@ struct Type2Int
 	static unsigned int value()
 	{
 		static size_t m = 0;
-		return (unsigned int)&m;
+		return (size_t)&m;
 	}
 };
 
