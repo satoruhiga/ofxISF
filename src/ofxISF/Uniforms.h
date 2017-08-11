@@ -88,7 +88,7 @@ public:
 	
 	void removeUniform(const string& key)
 	{
-		if (hasUniform(key)) return false;
+		//if (hasUniform(key)) return false;
 		
 		uniforms_map.erase(key);
 		updateCache();
