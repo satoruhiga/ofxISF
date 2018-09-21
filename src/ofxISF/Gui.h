@@ -102,11 +102,17 @@ public:
                     chain->getShader(j)->setUniform<float>(name, value);
                 }
                 if (type == "ofVec2f") {
-                    ofParameter<ofVec2f> value = guiParams[j].parameters.getVec2f(name);
+                    ofVec2f value;
+                    value.x = guiParams[j].parameters.getVec2f(name)->x;
+                    value.y = guiParams[j].parameters.getVec2f(name)->y;
                     chain->getShader(j)->setUniform<ofVec2f>(name, value);
                 }
                 if (type == "ofFloatColor") {
-                    ofVec4f col = guiParams[j].parameters.getVec4f(name);
+                    ofVec4f col;
+                    col.x = guiParams[j].parameters.getVec4f(name)->x;
+                    col.y = guiParams[j].parameters.getVec4f(name)->y;
+                    col.z = guiParams[j].parameters.getVec4f(name)->z;
+                    col.w = guiParams[j].parameters.getVec4f(name)->w;
                     ofParameter<ofFloatColor> value = ofFloatColor(col.x, col.y, col.z, col.w);
                     chain->getShader(j)->setUniform<ofFloatColor>(name, value);
                 }

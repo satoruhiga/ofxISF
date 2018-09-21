@@ -1,3 +1,4 @@
 ofxGui
 ofxISF
+ofxPoco
 ofxXmlSettings
