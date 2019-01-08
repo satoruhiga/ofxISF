@@ -32,6 +32,7 @@ void ofApp::dragEvent(ofDragInfo dragInfo){
     for(unsigned int i = 0; i < dragInfo.files.size(); i++){
         string extention = dragInfo.files[i].substr(dragInfo.files[i].length()-3, dragInfo.files[i].length());
         string shaderName = dragInfo.files[i].substr(0,dragInfo.files[i].length()-3);
+        ofLog() << "SHADER NAME" << shaderName;
         if (extention == ".fs" || extention == ".vs") {
             if(!chain.load(shaderName)){
                 ofLogError() << "Bad ISF format";

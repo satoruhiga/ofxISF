@@ -30,6 +30,7 @@ public:
 	unsigned int getTypeID() const { return type_id; }
     
     bool useNoralizedValue = false;
+    
 
 protected:
 
@@ -58,7 +59,7 @@ public:
 	{
 		return uniforms.at(idx);
 	}
-	
+    
 	Uniform::Ref getUniform(const string& key) const
 	{
 		if (uniforms_map.find(key) == uniforms_map.end()) return Uniform::Ref();
@@ -125,6 +126,7 @@ public:
 	T value;
 	T min, max;
 	bool has_range;
+    
 
 	Uniform_(const string& name, const T& default_value = T()) : Uniform(name, Type2Int<T>::value()), value(default_value), has_range(false) {}
 
@@ -134,6 +136,10 @@ public:
 		min = min_;
 		max = max_;
 	}
+    
+    T getMin() {
+        return min;
+    }
 
 	template <typename TT>
 	void set(const TT& v)
@@ -178,6 +184,7 @@ public:
 
 	FloatUniform(const string& name, const float& default_value = Type()) : Uniform_(name, default_value) {}
 
+    
 	void update(ofShader *shader)
 	{
         if (useNoralizedValue) {

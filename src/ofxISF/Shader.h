@@ -439,6 +439,7 @@ protected:
 				}
 				
 				Uniform::Ref uniform = setup_input_uniform(o);
+                
 				if (uniform)
 				{
 					// uniform type changed
