@@ -91,6 +91,9 @@ public:
 		cout << frag << endl;
 		cout << "===" << endl;
 	}
+    
+    bool useDefaultVert = true;
+    string rawVertexShader;
 
 protected:
 
@@ -122,30 +125,47 @@ protected:
 			uniform_str += o->getUniform() + "\n";
 		}
 
-		{
-			vert = _S(
-				uniform int PASSINDEX;
-				uniform vec2 RENDERSIZE;
-				varying vec2 vv_FragNormCoord;
-
-				void vv_vertShaderInit(void)
-				{
-					gl_Position = ftransform();
-					vv_FragNormCoord = vec2(gl_MultiTexCoord0.x, gl_MultiTexCoord0.y);
-				}
-
-				$UNIFORMS$
-
-				void main(void)
-				{
-					vv_vertShaderInit();
-				}
-			);
-
-			ofStringReplace(vert, "$UNIFORMS$", uniform_str);
-		}
-
-		{
+        if (useDefaultVert) {
+            vert = _S(
+                      uniform int PASSINDEX;
+                      uniform vec2 RENDERSIZE;
+                      varying vec2 vv_FragNormCoord;
+                      
+                      void vv_vertShaderInit(void)
+                      {
+                          gl_Position = ftransform();
+                          vv_FragNormCoord = vec2(gl_MultiTexCoord0.x, gl_MultiTexCoord0.y);
+                      }
+                      
+                      $UNIFORMS$
+                      
+                      void main(void)
+                      {
+                          vv_vertShaderInit();
+                      }
+                      );
+            
+            ofStringReplace(vert, "$UNIFORMS$", uniform_str);
+        } else
+        {
+            vert = _S(
+                      uniform int PASSINDEX;
+                      uniform vec2 RENDERSIZE;
+                      varying vec2 vv_FragNormCoord;
+                      
+                      void vv_vertShaderInit(void)
+                      {
+                          gl_Position = ftransform();
+                          vv_FragNormCoord = vec2(gl_MultiTexCoord0.x, gl_MultiTexCoord0.y);
+                      }
+                      
+                      $UNIFORMS$
+                      )
+            + rawVertexShader;
+            ofStringReplace(vert, "$UNIFORMS$", uniform_str);
+        }
+        
+        {
 			frag = _S(
 				uniform int PASSINDEX;
 				uniform vec2 RENDERSIZE;

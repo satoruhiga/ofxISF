@@ -18,9 +18,9 @@ public:
 		video.initGrabber(1280, 720);
 		
 		isf.setup(1280, 720, GL_RGB32F);
-		isf.load("isf-test.fs");
+		isf.load("isf-test");
 		
-		isf.setImage("inputImage", video.getTextureReference());
+		isf.setImage("inputImage", video.getTexture());
 	}
 	
 	void update()
@@ -28,8 +28,7 @@ public:
 		video.update();
 		
 		float t = ofGetElapsedTimef() * 2;
-		isf.setParam<float>("blurAmount", ofNoise(1, 0, 0, t) * 1.5);
-		
+		isf.setUniform<float>("blurAmount", ofNoise(1, 0, 0, t) * 1.5);
 		isf.update();
 	}
 	
